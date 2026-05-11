@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { sendOrderConfirmation } from "@/lib/sendOrderConfirmation";
 
 export async function POST(req: Request) {
   try {
@@ -10,12 +11,13 @@ export async function POST(req: Request) {
     // ✅ УСПЕШНАЯ ОПЛАТА
     if (eventType === "PAYMENT.CAPTURE.COMPLETED") {
       const capture = body.resource;
-
-      // ⚠️ Важно: orderId нужно передавать в custom_id при создании PayPal заказа
       const orderId = capture?.custom_id;
 
       if (!orderId) {
-        return NextResponse.json({ error: "Missing orderId" }, { status: 400 });
+        return NextResponse.json(
+          { error: "Missing orderId" },
+          { status: 400 }
+        );
       }
 
       const order = await prisma.order.findUnique({
@@ -24,15 +26,16 @@ export async function POST(req: Request) {
       });
 
       if (!order) {
-        return NextResponse.json({ error: "Order not found" }, { status: 404 });
+        return NextResponse.json(
+          { error: "Order not found" },
+          { status: 404 }
+        );
       }
 
-      // защита от повторного webhook
       if (order.status === "paid") {
         return NextResponse.json({ received: true });
       }
 
-      // 🔥 уменьшаем stock + обновляем статус
       await prisma.$transaction(async (tx) => {
         for (const item of order.items) {
           await tx.product.update({
@@ -47,9 +50,20 @@ export async function POST(req: Request) {
 
         await tx.order.update({
           where: { id: order.id },
-          data: { status: "paid" },
+          data: {
+            status: "paid",
+          },
         });
       });
+
+      if (order.email) {
+        await sendOrderConfirmation({
+          to: order.email,
+          name: order.name || "Customer",
+          orderId: order.id,
+          total: order.total,
+        });
+      }
     }
 
     // ❌ ОШИБКА ОПЛАТЫ

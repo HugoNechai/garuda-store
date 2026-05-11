@@ -7,39 +7,33 @@ export default function AddToCartButton({
   name,
   price,
   stock,
+  quantity = 60,
 }: {
   productId: number;
   name: string;
   price: number;
   stock: number;
+  quantity?: number;
 }) {
   const { addToCart, items } = useCart();
 
-  const handleAdd = async () => {
+  const handleAdd = () => {
     const currentItem = items.find((i) => i.productId === productId);
     const currentQty = currentItem ? currentItem.quantity : 0;
 
-    if (currentQty >= stock) {
+    if (currentQty + quantity > stock) {
       alert("Not enough stock");
       return;
     }
 
-    addToCart({
-      productId,
-      name,
-      price,
-    });
-
-    await fetch("/api/cart", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+    addToCart(
+      {
         productId,
-        quantity: 1,
-      }),
-    });
+        name,
+        price,
+      },
+      quantity
+    );
   };
 
   return (

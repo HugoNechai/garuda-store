@@ -13,37 +13,42 @@ export async function POST(req: Request) {
       );
     }
 
-    // check existing user
+    const normalizedEmail = email.trim().toLowerCase();
+
     const existing = await prisma.user.findUnique({
-      where: { email },
+      where: { email: normalizedEmail },
     });
 
-    // 👉 если пользователь уже есть — просто возвращаем его
     if (existing) {
-      return NextResponse.json({
-        success: true,
-        userId: existing.id,
-      });
+      return NextResponse.json(
+        { error: "Account already exists" },
+        { status: 409 }
+      );
     }
 
-    // hash password
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // create user
     const user = await prisma.user.create({
       data: {
-        name,
-        email,
+        name: name.trim(),
+        email: normalizedEmail,
         passwordHash,
       },
     });
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       userId: user.id,
     });
 
-  } catch (error) {
+    response.cookies.set("userId", String(user.id), {
+      httpOnly: true,
+      path: "/",
+      sameSite: "lax",
+    });
+
+    return response;
+  } catch {
     return NextResponse.json(
       { error: "Server error" },
       { status: 500 }

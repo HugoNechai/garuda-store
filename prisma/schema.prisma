@@ -12,10 +12,12 @@ model User {
   email        String  @unique
   passwordHash String
   name         String?
+  role         String  @default("user")
 
   createdAt DateTime @default(now())
 
   orders Order[]
+  cartItems CartItem[]
 }
 
 model Product {
@@ -23,6 +25,7 @@ model Product {
   name        String
   price       Int
   description String?
+  slogan      String?
   stock       Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -46,6 +49,9 @@ model CartItem {
   productId Int
   quantity  Int      @default(1)
   createdAt DateTime @default(now())
+
+  userId Int?
+  user   User? @relation(fields: [userId], references: [id])
 
   product Product @relation(fields: [productId], references: [id])
 }

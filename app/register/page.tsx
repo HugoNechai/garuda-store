@@ -2,33 +2,41 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const redirectTo = searchParams.get("redirect") || "/account";
 
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    setLoading(true);
     setError("");
 
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    setLoading(true);
+
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          name,
           email,
           password,
         }),
@@ -37,33 +45,10 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Login failed");
+        setError(data.error || "Signup failed");
         setLoading(false);
         return;
       }
-
-      try {
-        const stored = localStorage.getItem("cart");
-
-        if (stored) {
-          const items = JSON.parse(stored);
-
-          for (const item of items) {
-            await fetch("/api/cart", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                productId: item.productId,
-                quantity: item.quantity,
-              }),
-            });
-          }
-
-          localStorage.removeItem("cart");
-        }
-      } catch {}
 
       router.push(redirectTo);
       router.refresh();
@@ -86,11 +71,11 @@ export default function LoginPage() {
             </p>
 
             <h1 className="text-5xl md:text-6xl font-medium tracking-tight text-white mb-5">
-              Login
+              Create Account
             </h1>
 
             <p className="text-sm md:text-base tracking-[0.18em] uppercase text-white/45">
-              Access Your Account
+              Join the Garuda Community
             </p>
           </div>
 
@@ -98,15 +83,23 @@ export default function LoginPage() {
             onClick={() => router.back()}
             className="text-sm text-white/60 hover:text-white transition"
           >
-            Back to home
+            Back
           </button>
         </div>
 
         {/* FORM */}
         <div className="max-w-5xl mx-auto">
           <div className="max-w-[68rem] rounded-[2rem] border border-white/10 bg-white/5 p-6 md:p-8 backdrop-blur-xl">
-            <form onSubmit={handleLogin} className="space-y-6">
+            <form onSubmit={handleSignup} className="space-y-6">
               <div className="space-y-4">
+                <input
+                  type="text"
+                  placeholder="Full Name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/35 focus:outline-none focus:ring-1 focus:ring-white/30"
+                />
+
                 <input
                   type="email"
                   placeholder="Email"
@@ -122,10 +115,20 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/35 focus:outline-none focus:ring-1 focus:ring-white/30"
                 />
+
+                <input
+                  type="password"
+                  placeholder="Confirm Password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/35 focus:outline-none focus:ring-1 focus:ring-white/30"
+                />
               </div>
 
               {error && (
-                <p className="text-sm text-red-300">{error}</p>
+                <p className="text-sm text-red-300">
+                  {error}
+                </p>
               )}
 
               <button
@@ -133,18 +136,8 @@ export default function LoginPage() {
                 disabled={loading}
                 className="w-full rounded-full border border-white bg-transparent text-white py-3 text-sm font-medium transition hover:bg-white hover:text-navy active:scale-[0.99] disabled:opacity-40"
               >
-                {loading ? "Logging in..." : "Login"}
+                {loading ? "Creating Account..." : "Create Account"}
               </button>
-
-              <p className="text-sm text-white/50 text-center">
-                Don&apos;t have an account?{" "}
-                <Link
-                  href={`/register?redirect=${encodeURIComponent(redirectTo)}`}
-                  className="text-white hover:text-white/80 transition"
-                >
-                  Create Account
-                </Link>
-              </p>
             </form>
           </div>
         </div>

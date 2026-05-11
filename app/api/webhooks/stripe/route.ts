@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
+import { sendOrderConfirmation } from "@/lib/sendOrderConfirmation";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET as string;
@@ -17,7 +18,7 @@ export async function POST(req: Request) {
       signature,
       webhookSecret
     );
-  } catch (err) {
+  } catch {
     return NextResponse.json(
       { error: "Webhook signature verification failed" },
       { status: 400 }
@@ -31,7 +32,10 @@ export async function POST(req: Request) {
     const orderId = session.metadata?.orderId;
 
     if (!orderId) {
-      return NextResponse.json({ error: "Missing orderId" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing orderId" },
+        { status: 400 }
+      );
     }
 
     const order = await prisma.order.findUnique({
@@ -40,15 +44,16 @@ export async function POST(req: Request) {
     });
 
     if (!order) {
-      return NextResponse.json({ error: "Order not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Order not found" },
+        { status: 404 }
+      );
     }
 
-    // ❗ защита от двойного webhook
     if (order.status === "paid") {
       return NextResponse.json({ received: true });
     }
 
-    // 🔥 транзакция: уменьшаем stock + обновляем статус
     await prisma.$transaction(async (tx) => {
       for (const item of order.items) {
         await tx.product.update({
@@ -68,9 +73,18 @@ export async function POST(req: Request) {
         },
       });
     });
+
+    if (order.email) {
+      await sendOrderConfirmation({
+        to: order.email,
+        name: order.name || "Customer",
+        orderId: order.id,
+        total: order.total,
+      });
+    }
   }
 
-  // ❌ неуспешная оплата
+  // ❌ FAILED PAYMENT
   if (event.type === "payment_intent.payment_failed") {
     const intent = event.data.object as Stripe.PaymentIntent;
 

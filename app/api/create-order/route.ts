@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 
 type CartItemInput = {
   productId: number;
@@ -39,7 +40,40 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ ПРОВЕРКА STOCK (оставляем)
+    const cookieStore = await cookies();
+    const userIdCookie = cookieStore.get("userId")?.value;
+
+    if (!userIdCookie) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const userId = Number(userIdCookie);
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 401 }
+      );
+    }
+
+    // Validate box quantities
+    for (const item of items) {
+      if (item.quantity % 60 !== 0) {
+        return NextResponse.json(
+          { error: "Products must be ordered in boxes of 60 tubes" },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate stock
     for (const item of items) {
       const product = await prisma.product.findUnique({
         where: { id: item.productId },
@@ -62,18 +96,20 @@ export async function POST(req: Request) {
       }
     }
 
-    // пользователь
-    const user = email
-      ? await prisma.user.findUnique({
-          where: { email },
-        })
-      : null;
+    // Calculate total server-side
+    let total = 0;
 
-    const total = items.reduce((sum, item) => {
-      return sum + item.price * item.quantity;
-    }, 0);
+    for (const item of items) {
+      const product = await prisma.product.findUnique({
+        where: { id: item.productId },
+      });
 
-    // ✅ ТОЛЬКО СОЗДАЁМ ЗАКАЗ (без изменения stock)
+      if (!product) continue;
+
+      total += product.price * item.quantity;
+    }
+
+    // Create order
     const order = await prisma.order.create({
       data: {
         total,
@@ -84,7 +120,7 @@ export async function POST(req: Request) {
         city,
         postal,
         country,
-        userId: user?.id || null,
+        userId: user.id,
         status: "pending",
 
         items: {
