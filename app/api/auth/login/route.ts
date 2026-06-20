@@ -39,21 +39,21 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ создаём response
+    // create response
     const response = NextResponse.json({
       success: true,
       userId: user.id,
+      role: user.role,
     });
 
-    // ✅ сохраняем cookie (ВАЖНО: без secure для localhost)
+    // save cookie
     response.cookies.set("userId", String(user.id), {
       httpOnly: true,
       path: "/",
     });
 
     return response;
-
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Server error" },
       { status: 500 }

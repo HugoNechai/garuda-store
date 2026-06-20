@@ -65,7 +65,12 @@ export default function LoginPage() {
         }
       } catch {}
 
-      router.push(redirectTo);
+      if (data.role === "admin") {
+        router.push("/admin");
+      } else {
+        router.push(redirectTo);
+      }
+
       router.refresh();
     } catch {
       setError("Network error");
