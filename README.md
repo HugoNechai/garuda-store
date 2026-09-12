@@ -1,78 +1,115 @@
-Nine Shuttles
+# Garuda Store — Full-Stack E-Commerce Platform
 
-Nine Shuttles is a full-stack e-commerce platform built for a real business case.
-The project was developed as a production-oriented online store for selling products, with user authentication, product management, shopping cart, order flow, payments, email notifications, and an admin dashboard.
+A full-stack online store developed for a badminton equipment business, covering the customer shopping experience and internal tools for managing products and orders.
 
-Project Overview
+The platform includes authentication, a product catalog, shopping cart, order management, payment integrations, email notifications, and a protected admin dashboard.
 
-The goal of the project was to build a professional online store that could be used by a real business before launch.
-The platform includes both customer-facing functionality and internal admin tools for managing products and orders.
+**Project status:** The project reached a near-launch stage before the business paused the public release.
 
-The project reached a near-launch stage, but the business side was paused before public release.
+This repository contains the application’s source code and screenshots.
 
-Features
+## My Contribution
 
-* Product catalog
-* Product detail pages
-* Shopping cart
-* User registration and login
-* Admin dashboard
-* Product management
-* Order management
-* Stripe payment integration
-* PayPal payment integration
-* Email notifications with Resend
-* PostgreSQL database with Prisma ORM
+I developed functionality across the frontend, server-side logic, database, and third-party integrations.
 
-Tech Stack
+My work included:
 
-* Next.js
-* React
-* TypeScript
-* Prisma
-* PostgreSQL
-* Stripe
-* PayPal
-* Resend
-* Tailwind CSS
+- Building product browsing, product detail pages, and shopping cart functionality.
+- Implementing user registration, login, and protected administrative functionality.
+- Developing tools for managing products and orders.
+- Designing PostgreSQL data models and relationships using Prisma.
+- Integrating Stripe and PayPal payments.
+- Implementing email notifications using Resend.
+- Connecting the customer-facing interface with server-side business logic and data storage.
 
-Screenshots
+## Key Features
 
-All screenshots are stored in the /screenshots folder.
+### Customer Experience
 
-The screenshots show the main pages of the application, including the customer interface, product flow, checkout-related pages, and admin functionality.
+- Product catalog and product detail pages.
+- User registration and login.
+- Shopping cart.
+- Checkout and order flow.
+- Stripe and PayPal payment options.
+- Email notifications.
 
-Architecture
+### Administration
 
-The application uses a full-stack Next.js structure with server-side logic, database access through Prisma, and PostgreSQL as the relational database.
+- Protected admin dashboard.
+- Product management.
+- Order management.
 
-Core parts of the system include:
+## Technology Stack
 
-* authentication logic
-* product and order data models
-* shopping cart workflow
-* payment integrations
-* admin-only management pages
-* email notification logic
+| Area | Technologies |
+| --- | --- |
+| Application framework | Next.js |
+| User interface | React, TypeScript, Tailwind CSS |
+| Database | PostgreSQL |
+| Database access | Prisma ORM |
+| Payments | Stripe, PayPal |
+| Email notifications | Resend |
 
-What This Project Demonstrates
+## Architecture
 
-This project demonstrates practical full-stack development skills:
+The application uses a full-stack Next.js structure, with user interfaces, server-side logic, and database access within the same project.
 
-* building a real e-commerce workflow
-* designing database models with Prisma
-* integrating third-party payment providers
-* implementing authentication and protected admin functionality
-* working with production-oriented project structure
-* creating a maintainable full-stack application with TypeScript
+Core responsibilities include:
 
-Installation
+- **Presentation:** React components styled with Tailwind CSS provide the storefront and administrative interfaces.
+- **Application logic:** server-side functionality handles authentication, products, shopping cart workflows, orders, and integrations.
+- **Data access:** Prisma models and queries connect the application to PostgreSQL.
+- **External services:** Stripe and PayPal support payments, while Resend handles email notifications.
 
+Administrative functionality is protected to separate product and order management from the customer shopping experience.
+
+## Project Scope and Status
+
+Garuda Store was developed around a real business case, with the goal of supporting the sale of badminton equipment through a dedicated online store.
+
+The project progressed to a near-launch stage, but the business paused the public release. It is presented here as a portfolio project demonstrating the implemented application, rather than as a currently operating store.
+
+## Screenshots
+
+Screenshots are available in the [`screenshots`](./screenshots/) folder.
+
+They show examples of:
+
+- The customer-facing storefront.
+- Product browsing and detail pages.
+- Shopping cart and checkout-related screens.
+- Administrative functionality.
+
+## Local Development
+
+Running the application locally requires a configured PostgreSQL database and environment variables for authentication, payments, and email services.
+
+The basic dependency installation and development commands are:
+
+```bash
 npm install
 npm run dev
+```
 
-Environment Variables
+These commands do not configure the database or external services. The required environment settings and any Prisma database setup must be completed before the corresponding application features can work.
 
-This project requires environment variables for database connection, authentication, payments, and email services.
+## Environment Configuration
 
-Environment files are not included in the repository for security reasons.
+The application requires configuration for:
+
+- PostgreSQL database access.
+- Authentication.
+- Stripe.
+- PayPal.
+- Resend.
+
+Use the variable names referenced by the application’s configuration and source files. Environment files containing credentials are not included in this repository.
+
+## What This Project Demonstrates
+
+- Full-stack application development with Next.js, React, and TypeScript.
+- Relational data modelling with PostgreSQL and Prisma.
+- Implementation of product, cart, and order workflows.
+- Integration of payment and email services.
+- Authentication and protected administrative functionality.
+- Development of an e-commerce application around real business requirements.
